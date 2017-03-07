@@ -1,7 +1,7 @@
 # AndroidThingsKnightRider
 A simple project for Android Things and the Rainbow HAT
 
-This project uses the LED stip from the Rainbow HAT to display a _knigh rider_ style animation, or if you prefer it, a cylon.
+This project uses the LED stip from the Rainbow HAT to display a _Knight Rider_ style animation, or if you prefer it, a cylon.
 
 It uses the alphanumeric LED display, the RGB LED strip, the buttons, the basic LEDS and the piezo buzzer.
 It does not use the temperature sensor.
