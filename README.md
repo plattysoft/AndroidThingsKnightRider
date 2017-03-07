@@ -14,3 +14,5 @@ It works as follows:
 * The LEDS are linked to the buttons that are below them, so they light when pressed
 * There is audio feedback from the piezo buzzer on click on each button
 * The alphanumeric display shows "KITT" on it
+
+[See it in action](https://twitter.com/sla_shalafi/status/810867355752525824)
