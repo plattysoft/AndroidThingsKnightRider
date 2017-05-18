@@ -26,6 +26,7 @@ public class HomeActivity extends Activity {
     private Timer mTimer;
     private boolean mGoingUp = true;
     private int mCurrentPos = 0;
+    private int mPreviousPos = 0;
     private long mInterval = 200;
 
     private ButtonInputDriver inputDriverA;
@@ -139,7 +140,8 @@ public class HomeActivity extends Activity {
     }
 
     private void knightRider() {
-        int previousPos = mCurrentPos;
+        int previousPreviousPos = mPreviousPos;
+        mPreviousPos = mCurrentPos;
         if (mGoingUp) {
             if (mCurrentPos == MAX_LEDS) {
                 mGoingUp = false;
@@ -163,19 +165,22 @@ public class HomeActivity extends Activity {
             int[] rainbow = new int[MAX_LEDS+1];
             for (int i = 0; i < rainbow.length; i++) {
                 if (i == mCurrentPos) {
-                    brightness[i] = 16;
+                    brightness[i] = 15;
+                    rainbow[i] = Color.HSVToColor(100, new float[]{1.0f, 1.0f, 1.0f});
+                }
+                else if (i == mPreviousPos){
+                        brightness[i] = 7;
+                        rainbow[i] = Color.HSVToColor(100, new float[]{1.0f, 1.0f, 1.0f});
+                }
+                else if (i == previousPreviousPos){
+                    brightness[i] = 1;
                     rainbow[i] = Color.HSVToColor(100, new float[]{1.0f, 1.0f, 1.0f});
                 }
                 else {
-                    if (i == previousPos){
-                        brightness[i] = 1;
-                        rainbow[i] = Color.HSVToColor(100, new float[]{1.0f, 1.0f, 1.0f});
-                    }
-                    else {
-                        rainbow[i] = Color.HSVToColor(100, new float[]{0f, 0f, 0f});
-                    }
+                    rainbow[i] = Color.HSVToColor(100, new float[]{0f, 0f, 0f});
                 }
             }
+            ledstrip.setBrightness(brightness);
             ledstrip.write(rainbow);
             // Close the device when done.
             ledstrip.close();
