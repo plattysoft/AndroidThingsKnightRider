@@ -5,10 +5,13 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.view.KeyEvent;
 
+import com.google.android.things.contrib.driver.apa102.Apa102;
 import com.google.android.things.contrib.driver.button.ButtonInputDriver;
 import com.google.android.things.contrib.driver.ht16k33.AlphanumericDisplay;
 import com.google.android.things.contrib.driver.ht16k33.Ht16k33;
+import com.google.android.things.contrib.driver.pwmspeaker.Speaker;
 import com.google.android.things.contrib.driver.rainbowhat.RainbowHat;
+import com.google.android.things.pio.Gpio;
 
 import java.io.IOException;
 import java.util.Timer;
@@ -26,7 +29,6 @@ public class HomeActivity extends Activity {
     private Timer mTimer;
     private boolean mGoingUp = true;
     private int mCurrentPos = 0;
-    private int mPreviousPos = 0;
     private long mInterval = 200;
 
     private ButtonInputDriver inputDriverA;
@@ -59,8 +61,34 @@ public class HomeActivity extends Activity {
     }
 
     @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        float freq = 0;
+        if (keyCode == KeyEvent.KEYCODE_A) {
+            lightLed(RainbowHat.LED_RED, true);
+            freq = 80;
+        }
+        else if (keyCode == KeyEvent.KEYCODE_B) {
+            lightLed(RainbowHat.LED_GREEN, true);
+            freq = 800;
+        }
+        else if (keyCode == KeyEvent.KEYCODE_C) {
+            lightLed(RainbowHat.LED_BLUE, true);
+            freq = 8000;
+        }
+        try {
+            Speaker speaker = RainbowHat.openPiezo();
+            speaker.play(freq);
+            speaker.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_A) {
+            lightLed(RainbowHat.LED_RED, false);
             if (mTimer == null) {
                 startTimer();
             }
@@ -69,16 +97,25 @@ public class HomeActivity extends Activity {
             }
         }
         else if (keyCode == KeyEvent.KEYCODE_B) {
+            lightLed(RainbowHat.LED_GREEN, false);
             if (mInterval > MIN_INTERVAL) {
                 mInterval = mInterval / 2;
                 restartTimer();
             }
         }
         else if (keyCode == KeyEvent.KEYCODE_C) {
+            lightLed(RainbowHat.LED_BLUE, false);
             if (mInterval < MAX_INTERVAL) {
                 mInterval = mInterval * 2;
                 restartTimer();
             }
+        }
+        try {
+            Speaker speaker = RainbowHat.openPiezo();
+            speaker.stop();
+            speaker.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return super.onKeyUp(keyCode, event);
     }
@@ -123,9 +160,20 @@ public class HomeActivity extends Activity {
         }, mInterval, mInterval);
     }
 
+    private void lightLed(String ledId, boolean state) {
+        try {
+            Gpio led = RainbowHat.openLed(ledId);
+            led.setValue(state);
+            led.close();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void turnOffLeds() {
         try {
-            ExtendedApa102 ledstrip = new ExtendedApa102(RainbowHat.BUS_LEDSTRIP, ExtendedApa102.Mode.BGR);
+            Apa102 ledstrip = RainbowHat.openLedStrip();
             ledstrip.setBrightness(16);
             int[] rainbow = new int[MAX_LEDS+1];
             for (int i = 0; i < rainbow.length; i++) {
@@ -137,50 +185,36 @@ public class HomeActivity extends Activity {
         catch (IOException e) {
             e.printStackTrace();
         }
+        lightLed(RainbowHat.LED_RED, false);
+        lightLed(RainbowHat.LED_GREEN, false);
+        lightLed(RainbowHat.LED_BLUE, false);
     }
 
     private void knightRider() {
-        int previousPreviousPos = mPreviousPos;
-        mPreviousPos = mCurrentPos;
         if (mGoingUp) {
+            mCurrentPos++;
             if (mCurrentPos == MAX_LEDS) {
                 mGoingUp = false;
             }
-            else {
-                mCurrentPos++;
-            }
         }
         else {
+            mCurrentPos--;
             if (mCurrentPos == 0) {
                 mGoingUp = true;
             }
-            else {
-                mCurrentPos--;
-            }
         }
         try {
-            ExtendedApa102 ledstrip = new ExtendedApa102(RainbowHat.BUS_LEDSTRIP, ExtendedApa102.Mode.BGR);
-            int[] brightness = new int[7];
+            Apa102 ledstrip = RainbowHat.openLedStrip();
             ledstrip.setBrightness(15);
             int[] rainbow = new int[MAX_LEDS+1];
             for (int i = 0; i < rainbow.length; i++) {
                 if (i == mCurrentPos) {
-                    brightness[i] = 15;
-                    rainbow[i] = Color.HSVToColor(100, new float[]{1.0f, 1.0f, 1.0f});
-                }
-                else if (i == mPreviousPos){
-                        brightness[i] = 7;
-                        rainbow[i] = Color.HSVToColor(100, new float[]{1.0f, 1.0f, 1.0f});
-                }
-                else if (i == previousPreviousPos){
-                    brightness[i] = 1;
                     rainbow[i] = Color.HSVToColor(100, new float[]{1.0f, 1.0f, 1.0f});
                 }
                 else {
                     rainbow[i] = Color.HSVToColor(100, new float[]{0f, 0f, 0f});
                 }
             }
-            ledstrip.setBrightness(brightness);
             ledstrip.write(rainbow);
             // Close the device when done.
             ledstrip.close();
