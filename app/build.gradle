@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "24.0.3"
+    buildToolsVersion '25.0.0'
     defaultConfig {
         applicationId "com.oneviewhealthcare.iottest"
         minSdkVersion 24
@@ -26,6 +26,6 @@ dependencies {
     })
     compile 'com.android.support:appcompat-v7:24.2.1'
     testCompile 'junit:junit:4.12'
-    provided 'com.google.android.things:androidthings:0.1-devpreview'
-    compile 'com.google.android.things.contrib:driver-rainbowhat:0.1'
+    provided 'com.google.android.things:androidthings:0.3-devpreview'
+    compile 'com.google.android.things.contrib:driver-rainbowhat:0.3'
 }
