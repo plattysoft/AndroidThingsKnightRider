@@ -35,8 +35,8 @@ public class HomeActivity extends Activity {
     private Gpio mRedLed;
     private Gpio mGreenLed;
     private Gpio mBlueLed;
-    private AlphanumericDisplay mAlphanumericDisplay;
-    private Apa102 ledstrip;
+
+    private Apa102 mLedStrip;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,11 +51,15 @@ public class HomeActivity extends Activity {
             mGreenLed = RainbowHat.openLedGreen();
             mBlueLed = RainbowHat.openLedBlue();
 
-            ledstrip = RainbowHat.openLedStrip();
+            AlphanumericDisplay alphanumericDisplay = RainbowHat.openDisplay();
+            alphanumericDisplay.setBrightness(Ht16k33.HT16K33_BRIGHTNESS_MAX);
+            alphanumericDisplay.setEnabled(true);
+            alphanumericDisplay.display("KITT");
+            alphanumericDisplay.close();
 
-            mAlphanumericDisplay = RainbowHat.openDisplay();
-
-            displayText("KITT");
+            mLedStrip = RainbowHat.openLedStrip();
+            mLedStrip.setBrightness(31);
+            mLedStrip.setDirection(Apa102.Direction.NORMAL);
 
             mInputDriverA = RainbowHat.createButtonAInputDriver(KeyEvent.KEYCODE_A);
             mInputDriverA.register();
@@ -113,14 +117,6 @@ public class HomeActivity extends Activity {
         return super.onKeyUp(keyCode, event);
     }
 
-    private void displayText(String text) throws IOException {
-        mAlphanumericDisplay.setBrightness(Ht16k33.HT16K33_BRIGHTNESS_MAX);
-        mAlphanumericDisplay.display(text);
-        mAlphanumericDisplay.setEnabled(true);
-        // Close the device when done.
-        mAlphanumericDisplay.close();
-    }
-
     @Override
     public void onStop() {
         super.onStop();
@@ -132,8 +128,8 @@ public class HomeActivity extends Activity {
         mInputDriverC.unregister();
 
         try {
-            ledstrip.close();
-            mAlphanumericDisplay.close();
+            mLedStrip.close();
+
             mRedLed.close();
             mGreenLed.close();
             mBlueLed.close();
@@ -173,16 +169,6 @@ public class HomeActivity extends Activity {
     }
 
     private void turnOffLeds() {
-        try {
-            int[] rainbow = new int[RainbowHat.LEDSTRIP_LENGTH];
-            for (int i = 0; i < rainbow.length; i++) {
-                rainbow[i] = Color.HSVToColor(100, new float[]{0f, 0f, 0f});
-            }
-            ledstrip.write(rainbow);
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
         lightLed(mRedLed, false);
         lightLed(mGreenLed, false);
         lightLed(mBlueLed, false);
@@ -211,9 +197,8 @@ public class HomeActivity extends Activity {
                     rainbow[i] = Color.HSVToColor(100, new float[]{0f, 0f, 0f});
                 }
             }
-            ledstrip.setBrightness(31);
-            ledstrip.setDirection(Apa102.Direction.NORMAL);
-            ledstrip.write(rainbow);
+            mLedStrip.write(rainbow);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
